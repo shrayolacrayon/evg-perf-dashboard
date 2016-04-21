@@ -1,0 +1,71 @@
+<span ng-controller="DashboardController">
+  <style>
+    .dashboard-pass {
+      background-color: #5cb85c;
+    }
+    .dashboard-forced-accept {
+      background-color: #337ab7;
+    }
+    .dashboard-unacceptable {
+      background-color: #d9534f;
+    }
+    .dashboard-undesired {
+      background-color: #ffb618;
+
+    }
+    .dashboard-no-info {
+      background-color: #800080 ;
+    }
+    .testStatus{
+      width: 10px;
+    }
+  </style>
+  <div ng-show="dashboardData">  
+    <h3 class="section-heading"><i class="fa fa-book"></i> Performance Dashboard </h3>  
+    <div class="panel panel-body">   
+      <h3> [[currentBaseline]] </h3>
+      <div class="row"> 
+        <div class="col-lg-8">
+          <div class="progress" ng-show="showProgress()">
+            <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state)}" data-element-tooltip="state + ': ' + counts[state]" ></div>
+          </div>
+        </div>
+        <div class="col-lg-2">
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+              [[currentBaseline]] <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pointer"> 
+              <li ng-repeat="baseline in baselines" ng-show="baseline != currentBaseline" ng-click="setBaseline(baseline)">
+                [[baseline]]
+              </li>
+            </ul>
+          </div>  
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-12">
+          <div ng-repeat="task in dashboardData">
+            <h4> [[task.task_name]] on [[task.variant]]</h4>
+            <table class="table table-bordered">
+              <tr>
+                <th style="background-color: gray; width:10px"></th>
+                <th> Perf Ratio </th>
+                <th> Test </th>
+                <th> Tickets </th>
+                <th> Notes </th>
+              </tr>
+              <tr ng-repeat="test in getBaselineData(task) | orderBy: getOrder: true">
+                <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
+                <td> [[test.perf_ratio]]</td>
+                <td> [[test.test_file]]</td>
+                <td> [[test.ticket.join(', ')]]</td>
+                <td> [[test.notes]] </td>
+              </tr>
+            </table>
+          </div>
+        </div>    
+      </div>    
+    </div>    
+  </div>
+</span>
