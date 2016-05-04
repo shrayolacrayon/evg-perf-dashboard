@@ -2,13 +2,14 @@ package perfdash
 
 import (
 	"fmt"
-	"github.com/evergreen-ci/evergreen/plugin"
-	"github.com/evergreen-ci/evergreen/util"
-	"github.com/mitchellh/mapstructure"
 	"html/template"
 	"io/ioutil"
 	"net/http"
 	"path/filepath"
+
+	"github.com/evergreen-ci/evergreen/plugin"
+	"github.com/evergreen-ci/evergreen/util"
+	"github.com/mitchellh/mapstructure"
 )
 
 func init() {
@@ -21,7 +22,12 @@ var includes = []template.HTML{
 
 // PerfDashboardPlugin displays performance statistics in the UI.
 type PerfDashboardPlugin struct {
-	Projects []string `yaml:"string"`
+	Projects []string `yaml:"projects"`
+}
+
+type DashboardData struct {
+	Project   string `json:"project"`
+	VersionId string `json:"version_id"`
 }
 
 // Name implements Plugin Interface.
@@ -30,6 +36,14 @@ func (pdp *PerfDashboardPlugin) Name() string {
 }
 
 func (pdp *PerfDashboardPlugin) GetUIHandler() http.Handler { return nil }
+
+func (pdp *PerfDashboardPlugin) GetAppPluginInfo() *plugin.UIPage {
+	data := func(context plugin.UIContext) (interface{}, error) {
+		return pdp.Projects, nil
+	}
+	return &plugin.UIPage{"perf_dashboard.html", data}
+}
+
 func (pdp *PerfDashboardPlugin) Configure(params map[string]interface{}) error {
 	err := mapstructure.Decode(params, pdp)
 	if err != nil {
@@ -60,3 +74,7 @@ func (pdp *PerfDashboardPlugin) GetPanelConfig() (*plugin.PanelConfig, error) {
 		},
 	}, nil
 }
+
+//func (pdp *PerfDashboardPlugin) CreateDashboard(w http.ResponseWriter, r *http.Request) {
+
+//}
