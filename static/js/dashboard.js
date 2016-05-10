@@ -1,4 +1,4 @@
-function DashboardController($scope, $window, $http){
+mciModule.controller('DashboardController', function PerfController($scope, $window, $http, $location){
 
 	$scope.status_list = ["pass", "forced accept", "undesired", "unacceptable", "no info"];
 
@@ -101,4 +101,4 @@ function DashboardController($scope, $window, $http){
 	getDashboardData();
 
 
-}
+})
