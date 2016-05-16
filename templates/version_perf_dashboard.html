@@ -46,7 +46,7 @@
       <div class="row">
         <div class="col-lg-12">
           <div ng-repeat="task in dashboardData">
-            <h4> [[task.task_name]] on [[task.variant]]</h4>
+            <h4> <a ng-href="/task/[[task.task_id]]"> [[task.task_name]] on [[task.variant]]</a></h4>
             <table class="table table-bordered">
               <tr>
                 <th style="background-color: gray; width:10px"></th>
