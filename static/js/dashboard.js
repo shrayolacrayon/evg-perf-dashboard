@@ -16,7 +16,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 	$scope.commitInfo = {};
 	$scope.total = {};
 
-	$scope.hidePassingTasks = true;
+	$scope.hidePassingTasks = false;
 
 	// gets the color class associated with the state
 	$scope.getColor = function(state){
@@ -152,6 +152,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 					.success(function(d){
 						$scope.dashboardData[projectName] = d.json_tasks;
 						$scope.commitInfo[projectName] = d.commit_info;
+						$scope.hidePassingTasks = true;
 						setInitialBaselines(d.json_tasks, projectName);
 					})
 			})
