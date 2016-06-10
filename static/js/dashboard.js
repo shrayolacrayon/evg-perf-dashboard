@@ -7,7 +7,10 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 		$scope.version = $window.version.Version;	
 	}
 
-  	$scope.conf = $window.plugins["dashboard"];
+	if ($window.plugins){
+  		$scope.conf = $window.plugins["dashboard"];	
+	}
+	
 	$scope.counts = {};
 
 	$scope.baselines = {};
