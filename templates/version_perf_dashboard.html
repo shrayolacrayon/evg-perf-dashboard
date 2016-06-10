@@ -24,7 +24,7 @@
 
     }
   </style>
-  <div ng-show="dashboardData">  
+  <div ng-show="dashboardData && conf.enabled">  
     <h3 class="section-heading"><i class="fa fa-book"></i> Performance Dashboard </h3>  
     <div class="panel panel-body">   
       <h3> [[getBaselineDisplay(currentBaseline, version.id)]] </h3>
