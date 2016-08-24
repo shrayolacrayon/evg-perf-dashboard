@@ -71,7 +71,7 @@ Dashboard
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-10">
+          <div class="col-lg-8">
             <div class="progress dash-progress" ng-show="showProgress()">
               <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, project)}" data-element-tooltip="state + ': ' + counts[project][state]" ></div>
             </div>
@@ -79,17 +79,17 @@ Dashboard
           <div class="col-lg-2 baselines">
             <div class="dropdown">
               <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-                [[getBaselines(currentBaseline, project)]] <span class="caret"></span>
+                [[formatBaseline(getBaselines(currentBaseline, project))]] <span class="caret"></span>
               </button>
               <ul class="dropdown-menu pointer"> 
-                <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[baseline]] </li>
+                <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[formatBaseline(baseline)]] </li>
               </ul>
             </div>  
           </div>
         </div>
         <div class="row">
           <div class="col-lg-1 history-item-revision btn btn-default btn-hash commit-info">
-            <a ng-href="/version/[[getCommitInfo(project).version_id]]">[[getCommitInfo(project).revision.substring(0,5)]]</a>
+            <a ng-href="/version/[[getCommitInfo(project).version_id]]">[[getCommitInfo(project).revision.substring(0,4)]]</a>
           </div>
           <div class="col-lg-10">
             <span>
@@ -114,7 +114,7 @@ Dashboard
                 </tr>
                 <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true | filter: filterPassed ">
                   <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
-                  <td> [[test.perf_ratio]]</td>
+                  <td> [[test.perf_ratio.toFixed(2)]]</td>
                   <td> [[test.test_file]]</td>
                   <td> [[test.ticket.join(', ')]]</td>
                   <td> [[test.notes]] </td>

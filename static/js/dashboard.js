@@ -123,6 +123,10 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 		getTestStatuses(project);
 	};
 
+	$scope.formatBaseline = function(baseline) {
+		return baseline.split("-")[0];
+	}
+
 	$scope.getBaselineData = function(task, project){
 		b =  _.filter(task.data.baselines, function(b){
 			return $scope.currentBaseline[project] == b.version;
