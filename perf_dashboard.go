@@ -21,8 +21,10 @@ var includes = []template.HTML{
 }
 
 // PerfDashboardPlugin displays performance statistics in the UI.
+// Branches is a map of the branch name to the list of project names
+// associated with that branch.
 type PerfDashboardPlugin struct {
-	Projects []string `yaml:"projects"`
+	Branches map[string][]string `yaml:"projects"`
 }
 
 type DashboardData struct {
@@ -39,7 +41,7 @@ func (pdp *PerfDashboardPlugin) GetUIHandler() http.Handler { return nil }
 
 func (pdp *PerfDashboardPlugin) GetAppPluginInfo() *plugin.UIPage {
 	data := func(context plugin.UIContext) (interface{}, error) {
-		return pdp.Projects, nil
+		return pdp.Branches, nil
 	}
 	return &plugin.UIPage{"perf_dashboard.html", data}
 }
@@ -66,9 +68,16 @@ func (pdp *PerfDashboardPlugin) GetPanelConfig() (*plugin.PanelConfig, error) {
 				Position:  plugin.PageCenter,
 				PanelHTML: template.HTML(dashboardHTML),
 				DataFunc: func(context plugin.UIContext) (interface{}, error) {
+					exists := false
+					for _, projects := range pdp.Branches {
+						if util.SliceContains(projects, context.ProjectRef.Identifier) {
+							exists = true
+							break
+						}
+					}
 					return struct {
 						Enabled bool `json:"enabled"`
-					}{util.SliceContains(pdp.Projects, context.ProjectRef.Identifier)}, nil
+					}{exists}, nil
 				},
 			},
 		},

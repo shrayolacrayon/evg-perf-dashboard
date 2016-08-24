@@ -30,20 +30,20 @@ Dashboard
     }
 
     .dash-progress {
-      height:32px;
+      height:20px;
 
-    }
-    .testStatus{
-      width: 10px;
     }
     .commit-info {
       margin-left: 15px;
+    }
+    .project-col{
+      padding: 5px;
     }
     .baselines {
       margin-bottom: 10px;
     }
     .hidePassing {
-      margin-top: 40px;
+      margin-top: 30px;
     }
 
     .numPassing {
@@ -57,74 +57,76 @@ Dashboard
   <div class="container-fluid">
     <div class="row">
       <div class="col-lg-2">
-        <h1> Perf Dashboard </h1>
+        <h2> Perf Dashboard </h2>
       </div>
       <div class="col-lg-2 checkbox hidePassing">
         <label> <input type="checkbox" ng-model="hidePassingTasks"> Hide Passing Tasks </label>
       </div>
     </div>
-    <div ng-class="getColWidth()" ng-repeat="project in dashboardProjects">
-      <div class="row">
-        <div class="col-lg-6">
-          <h3> [[project]] </h3>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-10">
-          <div class="progress dash-progress" ng-show="showProgress()">
-            <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, project)}" data-element-tooltip="state + ': ' + counts[project][state]" ></div>
+    <div class="row">
+      <div ng-class="getColWidth()" class="project-col" ng-repeat="project in dashboardProjects">
+        <div class="row">
+          <div class="col-lg-6">
+            <h3> [[project]] </h3>
           </div>
         </div>
-        <div class="col-lg-2 baselines">
-          <div class="dropdown">
-            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-              [[getBaselines(currentBaseline, project)]] <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu pointer"> 
-              <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[baseline]] </li>
-            </ul>
-          </div>  
-        </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-1 history-item-revision btn btn-default btn-hash commit-info">
-          <a ng-href="/version/[[getCommitInfo(project).version_id]]">[[getCommitInfo(project).revision.substring(0,5)]]</a>
-        </div>
-        <div class="col-lg-10">
-          <span>
-            [[getCommitInfo(project).message]] <span class="muted small"> [[getCommitInfo(project).create_time | date:'short']] </span> 
-          </span>
-        </div> 
-      </div>
-      <div class="row">
-        <div class="col-lg-12">
-          <div ng-repeat="task in getData(project)">
-            <h4> 
-              <a ng-href="/task/[[task.task_id]]"> [[task.task_name]] on [[task.variant]]</a>
-              <span ng-show="allPassing(project, task)" class="numPassing" style="margin-left:10px"> All pass </span>
-            </h4>
-            <table class="table table-bordered" ng-hide="allPassing(project,task)">
-              <tr>
-                <th style="background-color: gray; width:10px"></th>
-                <th> Perf Ratio </th>
-                <th> Test </th>
-                <th> Tickets </th>
-                <th> Notes </th>
-              </tr>
-              <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true | filter: filterPassed ">
-                <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
-                <td> [[test.perf_ratio]]</td>
-                <td> [[test.test_file]]</td>
-                <td> [[test.ticket.join(', ')]]</td>
-                <td> [[test.notes]] </td>
-              </tr>
-            </table>
-            <div ng-show="hidePassingTasks && getNumberPassing(project,task) > 0" ng-hide="allPassing(project,task)" class=" numPassing"> 
-                +[[getNumberPassing(project, task)]] pass
+        <div class="row">
+          <div class="col-lg-10">
+            <div class="progress dash-progress" ng-show="showProgress()">
+              <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, project)}" data-element-tooltip="state + ': ' + counts[project][state]" ></div>
             </div>
           </div>
-        </div>    
-      </div> 
+          <div class="col-lg-2 baselines">
+            <div class="dropdown">
+              <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                [[getBaselines(currentBaseline, project)]] <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu pointer"> 
+                <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[baseline]] </li>
+              </ul>
+            </div>  
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-1 history-item-revision btn btn-default btn-hash commit-info">
+            <a ng-href="/version/[[getCommitInfo(project).version_id]]">[[getCommitInfo(project).revision.substring(0,5)]]</a>
+          </div>
+          <div class="col-lg-10">
+            <span>
+              [[getCommitInfo(project).message]] <span class="muted small"> [[getCommitInfo(project).create_time | date:'short']] </span> 
+            </span>
+          </div> 
+        </div>
+        <div class="row">
+          <div class="col-lg-12">
+            <div ng-repeat="task in getData(project)">
+              <h4> 
+                <a ng-href="/task/[[task.task_id]]"> [[task.task_name]] on [[task.variant]]</a>
+                <span ng-show="allPassing(project, task)" class="numPassing" style="margin-left:10px"> All pass </span>
+              </h4>
+              <table class="table table-bordered" ng-hide="allPassing(project,task)">
+                <tr>
+                  <th style="background-color: gray; width:10px"></th>
+                  <th> Perf Ratio </th>
+                  <th> Test </th>
+                  <th> Tickets </th>
+                  <th> Notes </th>
+                </tr>
+                <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true | filter: filterPassed ">
+                  <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
+                  <td> [[test.perf_ratio]]</td>
+                  <td> [[test.test_file]]</td>
+                  <td> [[test.ticket.join(', ')]]</td>
+                  <td> [[test.notes]] </td>
+                </tr>
+              </table>
+              <div ng-show="hidePassingTasks && getNumberPassing(project,task) > 0" ng-hide="allPassing(project,task)" class=" numPassing"> 
+                  +[[getNumberPassing(project, task)]] pass
+              </div>
+            </div>
+          </div>    
+        </div> 
+      </div>
     </div>
   </div>
 </div>
