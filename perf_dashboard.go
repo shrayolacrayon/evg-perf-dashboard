@@ -24,7 +24,7 @@ var includes = []template.HTML{
 // Branches is a map of the branch name to the list of project names
 // associated with that branch.
 type PerfDashboardPlugin struct {
-	Branches map[string][]string `yaml:"projects"`
+	Branches map[string][]string `yaml:"branches"`
 }
 
 type DashboardData struct {
@@ -83,7 +83,3 @@ func (pdp *PerfDashboardPlugin) GetPanelConfig() (*plugin.PanelConfig, error) {
 		},
 	}, nil
 }
-
-//func (pdp *PerfDashboardPlugin) CreateDashboard(w http.ResponseWriter, r *http.Request) {
-
-//}
