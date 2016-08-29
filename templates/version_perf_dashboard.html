@@ -31,7 +31,7 @@
       <div class="row"> 
         <div class="col-lg-8">
           <div class="progress dash-progress" ng-show="showProgress()">
-            <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, version.id)}" data-element-tooltip="state + ': ' + counts[state]" ></div>
+            <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, version.id)}" data-element-tooltip="state + ': ' + counts[version.id][state]" ></div>
           </div>
         </div>
         <div class="col-lg-2">
