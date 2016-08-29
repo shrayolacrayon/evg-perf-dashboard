@@ -15,8 +15,7 @@
  		super(props);
 
  		this.props.status_list = ["pass", "forced accept", "undesired", "unacceptable", "no info"];
- 		this.props.dashboardProjects = $window.dashboardProjects;
-
+ 		console.log(this)
  		this.state = {
  			hidePassing: false,
  		}
@@ -31,7 +30,7 @@
  		return (
  			<div className="container">
  				<AppHeader hidePassing={this.state.hidePassing} onHidePassingChange={this.handleHidePassing}/>
- 				<ColumnHeaders projects={this.props.dashboardProjects} columnWidth={this.props.colWidth}/>
+ 				<ColumnHeaders projects={this.dashboardProjects} columnWidth={this.props.colWidth}/>
  			</div>
  			)
  		}

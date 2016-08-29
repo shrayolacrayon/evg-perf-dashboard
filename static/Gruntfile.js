@@ -16,9 +16,9 @@ module.exports = function(grunt) {
           dynamic_mappings: {
             files: [{
               expand: true,
-              cwd: 'static/js/jsx',
+              cwd: 'js/jsx',
               src: ['**/*.jsx'],
-              dest: 'static/js',
+              dest: 'js',
               ext: '.js'
             }]
           }
@@ -26,11 +26,11 @@ module.exports = function(grunt) {
 
         watch: {
           css: {
-            files: ['static/less/**'],
+            files: ['less/**'],
             tasks: ['css']
           },
           react: {
-            files: ['static/js/jsx/**'],
+            files: ['js/jsx/**'],
             tasks: ['react']
           }
         },
@@ -38,14 +38,14 @@ module.exports = function(grunt) {
         less: {
             main: {
                 options: {
-                    paths: ['static/less'],
+                    paths: ['less'],
                     sourceMap: true,
-                    sourceMapFilename: 'static/dist/less.map',
-                    sourceMapURL: '/static/dist/less.map',
+                    sourceMapFilename: 'dist/less.map',
+                    sourceMapURL: '/dist/less.map',
                     sourceMapRootpath: '../../'
                 },
                 files: {
-                    'static/dist/css/styles.css': 'static/less/main.less'
+                    'static/dist/css/styles.css': 'less/main.less'
                 }
             }
         },
@@ -53,7 +53,7 @@ module.exports = function(grunt) {
         cssmin: {
             combine: {
                 files: {
-                    'static/dist/css/styles.min.css': 'static/dist/css/styles.css'
+                    'static/dist/css/styles.min.css': 'dist/css/styles.css'
                 }
             }
         }

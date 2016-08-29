@@ -11,7 +11,7 @@
   window.dashboardProjects = {{.Data}}
 </script>
 
-<script type="text/javascript" src="{{Static "js" "dashboard.js"}}?hash={{ StaticsMD5 }}"></script>
+<script type="text/javascript" src="/plugin/dashboard/static/js/dashboard.js?hash={{ StaticsMD5 }}"></script>
 
 {{end}}
 
@@ -23,6 +23,6 @@ Evergreen - Perf Dashboard
 {{define "content"}}
 <div id="root" class="container-fluid"> </div>
 
-<script type="text/javascript" src="{{Static "js" "dashboard-render.js"}}?hash={{ StaticsMD5 }}"></script>
+<script type="text/javascript" src="/plugin/dashboard/static/js/dashboard-render.js?hash={{ StaticsMD5 }}"></script>
 
 {{end}}
