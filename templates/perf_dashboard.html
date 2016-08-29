@@ -1,7 +1,7 @@
 {{define "scripts"}}
 <script type="text/javascript" src="/plugin/dashboard/static/js/dashboard.js?hash={{ StaticsMD5 }}"></script>
 <script type="text/javascript">
-  window.dashboardProjects = {{.Data}}
+  window.branches = {{.Data}}
 </script>
 {{end}}
 
@@ -43,7 +43,7 @@ Dashboard
       margin-bottom: 10px;
     }
     .hidePassing {
-      margin-top: 40px;
+      margin-top: 20px;
     }
 
     .numPassing {
@@ -52,16 +52,30 @@ Dashboard
       font-size: small;
     }
 
+    .header-controls {
+    	margin-top: 20px;
+    }
+
   </style>
 
   <div class="container-fluid">
-    <div class="row">
+    <div class="row header-controls">
       <div class="col-lg-2">
-        <h1> Perf Dashboard </h1>
+        <h3> Perf Dashboard </h3>
       </div>
-      <div class="col-lg-2 checkbox hidePassing">
+      <div class="col-lg-offset-6 col-lg-2 checkbox">
         <label> <input type="checkbox" ng-model="hidePassingTasks"> Hide Passing Tasks </label>
       </div>
+      <div class="col-lg-2">
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+              [[currentBranch]] <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu pointer"> 
+              <li ng-repeat="branch in branchNames" ng-show="branch != currentBranch" ng-click="setBranch(branch)"> [[branch]] </li>
+            </ul>
+          </div>  
+        </div>
     </div>
     <div ng-class="getColWidth()" ng-repeat="project in dashboardProjects">
       <div class="row">
@@ -78,10 +92,10 @@ Dashboard
         <div class="col-lg-2 baselines">
           <div class="dropdown">
             <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
-              [[getBaselines(currentBaseline, project)]] <span class="caret"></span>
+              [[formatBaseline(getBaselines(currentBaseline, project))]] <span class="caret"></span>
             </button>
             <ul class="dropdown-menu pointer"> 
-              <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[baseline]] </li>
+              <li ng-repeat="baseline in getBaselines(baselines, project)" ng-show="baseline != getBaselines(currentBaseline, project)" ng-click="setBaseline(baseline, project)"> [[formatBaseline(baseline)]] </li>
             </ul>
           </div>  
         </div>
@@ -113,7 +127,7 @@ Dashboard
               </tr>
               <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true | filter: filterPassed ">
                 <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
-                <td> [[test.perf_ratio]]</td>
+                <td> [[test.perf_ratio.toFixed(2)]]</td>
                 <td> [[test.test_file]]</td>
                 <td> [[test.ticket.join(', ')]]</td>
                 <td> [[test.notes]] </td>
