@@ -5,12 +5,13 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
   if ($window.branches){
     $scope.branches = $window.branches;
     $scope.branchNames = _.keys($scope.branches);
-    $scope.currentBranch = $scope.branchNames[0]
+    $scope.currentBranch = $scope.branchNames[0];
     $scope.dashboardProjects = $scope.branches[$scope.currentBranch];
   }
 
-  if ($window.version){
-    $scope.version = $window.version.Version;   
+  if ($window.version) {
+    $scope.version = $window.version.Version;
+    $scope.project = $scope.version.id;
   }
 
   if ($window.plugins){
@@ -95,6 +96,17 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       $scope.currentBranch = branchName;
     }
 
+    $scope.getTicketName = function(ticket) {
+      return (ticket.name ? ticket.name : ticket);
+    }
+    $scope.getJiraLink = function(ticket) {
+      return "https://jira.mongodb.com/browse/" + $scope.getTicketName(ticket);
+    }
+
+    $scope.getStrikethroughClass = function(ticket){
+      var completedStatuses = ["closed", "resolved"];
+      return _.contains(completedStatuses, ticket.status) ? "strikethrough" : "";
+    }
 
     var getTestStatuses = function(project) {
       var status = {}
@@ -183,14 +195,27 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
         })
       }
 
-      var getData = function(){
+      var getInitialData = function(){
         if ($scope.dashboardProjects){
           getAppDashboard();
         } else {
           getVersionDashboard();
         }
       }
-      getData();
+      getInitialData();
 
 
-    })
+})
+mciModule.directive('dashboardTable', function(){
+  return {
+      restrict: 'E',
+      templateUrl:'/plugin/dashboard/static/partials/dashboard_table.html',
+  }
+})
+
+mciModule.directive('baselineDropdown', function(){
+  return {
+      restrict: 'E',
+      templateUrl:'/plugin/dashboard/static/partials/baselines.html',
+  }
+})

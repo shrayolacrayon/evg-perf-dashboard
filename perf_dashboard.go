@@ -18,6 +18,7 @@ func init() {
 
 var includes = []template.HTML{
 	`<script type="text/javascript" src="/plugin/dashboard/static/js/dashboard.js"></script>`,
+	`<link href="/plugin/dashboard/static/css/dashboard.css" rel="stylesheet"/>`,
 }
 
 // PerfDashboardPlugin displays performance statistics in the UI.
