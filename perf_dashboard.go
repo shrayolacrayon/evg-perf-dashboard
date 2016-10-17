@@ -36,7 +36,7 @@ type DashboardData struct {
 // DashboardAppData is the data that is returned from calling the app level data function
 type DashboardAppData struct {
 	Branches      map[string][]string `json:"branches"`
-	DefaultBranch string
+	DefaultBranch string              `json:"default_branch"`
 }
 
 // Name implements Plugin Interface.

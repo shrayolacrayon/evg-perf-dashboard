@@ -1,43 +1,63 @@
 mciModule.controller('DashboardController', function PerfController($scope, $window, $http, $location){
 
+  // list of all statuses that a project can be
   $scope.status_list = ["pass", "forced accept", "undesired", "unacceptable", "no info"];
-  // check the location hash and use that if there is one. 
-  if ($location.search().branch){
-    $window.defaultBranch = $location.search().branch;
-  }
-  if ($window.branches){
-    $scope.branches = $window.branches;
-    $scope.branchNames = _.keys($scope.branches);
-    $scope.currentBranch = $scope.branchNames[0];
-    // if there is a branch in the location or a master branch make those the default. 
-    if (_.contains($scope.branchNames, $window.defaultBranch)){
-      $scope.currentBranch = $window.defaultBranch;
-    } else if (_.contains($scope.branchNames, "master")){
-      $scope.currentBranch = "master";
-    }
-    $scope.dashboardProjects = $scope.branches[$scope.currentBranch];
-  }
 
-  if ($window.version) {
-    $scope.version = $window.version.Version;
-    $scope.project = $scope.version.id;
+  // if this is an app level plugin retrieve app level information
+  if ($window.appData){
+    $scope.branches = $window.appData.branches;
+    $scope.defaultBranch = $window.appData.default_branch;
+    $scope.hidePassingTasks = true;
   }
 
   if ($window.plugins){
     $scope.conf = $window.plugins["dashboard"]; 
   }
-  
-  $scope.counts = {};
 
-  $scope.baselines = {};
-  $scope.currentBaseline = {};
-  $scope.baselineData = [];
+  // check the location hash for a branch and use that if it's there. 
+  if ($location.search().branch){
+    $scope.defaultBranch = $location.search().branch;
+  }
 
-  $scope.dashboardData = {};
-  $scope.commitInfo = {};
-  $scope.total = {};
 
-  $scope.hidePassingTasks = false;
+  if ($scope.branches){
+    $scope.branchNames = _.keys($scope.branches);
+    $scope.currentBranch = $scope.branchNames[0];
+    // if there is a branch in the location or a master branch make those the default. 
+    if (_.contains($scope.branchNames, $scope.defaultBranch)){
+      $scope.currentBranch = $scope.defaultBranch;
+    } else if (_.contains($scope.branchNames, "master")){
+      $scope.currentBranch = "master";
+    }
+    $scope.dashboardProjects = $scope.branches[$scope.currentBranch];
+    $scope.projects = {};
+    _.each($scope.dashboardProjects, function(projectName){
+      $scope.projects[projectName] = {};
+    })
+  }
+
+  // if there is a version, this is a version level dashboard. 
+  if ($window.version) {
+    $scope.version = $window.version.Version;
+    $scope.project = $scope.version.id;
+  }
+
+
+  // resetData will reset the projects.
+  // The projects object is a map from projects to the data associated with that project, 
+  // which includes the following: 
+  // counts - the number of each type of status of the tasks
+  // baselines - a list of all the baselines that are available to toggle between
+  var resetProjectData = function(project){
+    $scope.projects[project] = {};
+  }
+
+  $scope.getProjectData = function(project){
+    if ($scope.projects[project]){
+      return $scope.projects[project];
+    } 
+    return {};
+  }
 
     // gets the color class associated with the state
     $scope.getColor = function(state){
@@ -47,8 +67,9 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
     };
 
     $scope.getWidth = function(state, project){
-      if ($scope.counts[project]){
-        return ($scope.counts[project][state.toLowerCase()] / $scope.total[project]) * 100 + "%";
+      var projectData = $scope.getProjectData(project);
+      if (projectData.counts){
+        return (projectData.counts[state.toLowerCase()] / projectData.total) * 100 + "%";
       }
     }
 
@@ -72,8 +93,9 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       return $scope.hidePassingTasks && $scope.getNumberPassing(project, task) == $scope.getBaselineData(task,project).length;
     }
 
+
     $scope.getBaselines = function(baseline, project){
-      return baseline[project];
+      return $scope.getProjectData(project).baselines;
     }
 
     $scope.formatBaseline = function(baseline) {
@@ -83,12 +105,12 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       return baseline;
     }
 
-    $scope.showProgress = function() {
-      return !_.isEmpty($scope.counts);
+    $scope.showProgress = function(project) {
+      return !_.isEmpty($scope.getProjectData(project).counts);
     };
 
     $scope.getData = function(project){
-      return $scope.dashboardData[project];
+      return $scope.getProjectData(project).dashboardData;
     }
 
     $scope.getColWidth = function(){
@@ -97,7 +119,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
     }
 
     $scope.getCommitInfo = function(project) {
-      return $scope.commitInfo[project];
+      return $scope.getProjectData(project).commitInfo;
     }
 
     $scope.setBranch = function(branchName) {
@@ -120,10 +142,38 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       return _.contains(completedStatuses, currentStatus) ? "strikethrough" : "";
     }
 
+    $scope.setBaseline = function(baseline, project){
+      $scope.projects[project].currentBaseline = baseline;
+      getTestStatuses(project);
+    };
+
+    $scope.getBaselineData = function(task, project){
+      baseline =  _.find(task.data.baselines, function(b){
+        return $scope.projects[project].currentBaseline == b.version;
+      })
+      return baseline.data
+    };
+
+    $scope.changeRevision = function(increment, project){
+      var projectedSkip = $scope.projects[project].skip + increment;
+      if (projectedSkip < 0){
+        return;
+      }
+      if (increment > 0 && $scope.projects[project].lastRevision){
+        return;
+      }
+      if ($scope.projects[project].skip + increment < 0) {
+        return;
+      }
+      $scope.projects[project].skip += increment;
+      getAppDashboard();
+      return;
+    }
+
     var getTestStatuses = function(project) {
       var status = {}
         // for each task in the data, get the metrics of the selected baseline. 
-        _.each($scope.dashboardData[project], function(task){
+        _.each($scope.projects[project].dashboardData, function(task){
           var counts = _.countBy($scope.getBaselineData(task, project), function(t){return t.state.toLowerCase();});
           for (key in counts) {
             if (status[key]){
@@ -135,99 +185,107 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
         });
         var total = getTotal(status);
 
-        $scope.total[project] = getTotal(status);
-        $scope.counts[project] = status;
+        $scope.projects[project].total = getTotal(status);
+        $scope.projects[project].counts = status;
       };
 
-      var getTotal = function(statuses) {
-        var sum = 0;
-        for (key in statuses) {
-          sum += statuses[key];
-        }
-        return sum;
-      };
-
-      var setInitialBaselines = function(d, project){
-        if (d.length > 0) {
-          data = d[0].data;
-        } else {
-          console.log("no baselines");
-          return
-        }
-        if (data && data.baselines){
-          $scope.baselines[project] = _.pluck(data.baselines, 'version')
-          $scope.setBaseline($scope.baselines[project][0], project);
-        }
-      };
-
-      $scope.setBaseline = function(baseline, project){
-        $scope.currentBaseline[project] = baseline;
-        getTestStatuses(project);
-      };
-
-      $scope.getBaselineData = function(task, project){
-        b =  _.filter(task.data.baselines, function(b){
-          return $scope.currentBaseline[project] == b.version;
-        })
-        return b[0].data;
-      };
-
-
-
-    // gets the dashbord data and populates the baseline list. // 
-    // In this case, the dashboardData's key is the version id. 
-    var getVersionDashboard = function() {
-      $http.get("/plugin/json/version/" + $scope.version.id + "/dashboard/")
-      .success(function(d){
-        if (d != null){
-          $scope.dashboardData[$scope.version.id] = d;
-                // take the first task's data and get the set of baselines from it 
-                // NOTE: this is assuming that tasks all have the same baselines.
-                setInitialBaselines(d, $scope.version.id);
-              } else {
-                $scope.dashboardData ={}
-              }
-            })
+    var getTotal = function(statuses) {
+      var sum = 0;
+      for (key in statuses) {
+        sum += statuses[key];
+      }
+      return sum;
     };
 
-    // gets the dashboard for the app level by performing a get for 
-    // each project id and populating the dashboard data
-    var getAppDashboard = function(){
-        // get the latest version data for the whole dashboard
-        _.each($scope.branches, function(projects, branchName){
-          _.each(projects, function (projectName) {
-            $http.get("/plugin/json/version/latest/" + projectName + "/dashboard/")
-            .success(function(d){
-              $scope.dashboardData[projectName] = d.json_tasks;
-              $scope.commitInfo[projectName] = d.commit_info;
-              $scope.hidePassingTasks = true;
-              setInitialBaselines(d.json_tasks, projectName);
-            })
+    var setInitialBaselines = function(d, project){
+      if (d.length > 0) {
+        data = d[0].data;
+      } else {
+        console.log("no baselines");
+        return
+      }
+      if (data && data.baselines){
+        $scope.projects[project].baselines = _.pluck(data.baselines, 'version')
+        if (_.contains($scope.projects[project].baselines, $scope.projects[project].currentBaseline)){
+          $scope.setBaseline($scope.projects[project].currentBaseline, project);
+          return
+        }
+        $scope.setBaseline($scope.projects[project].baselines[0], project);
+      }
+    };
+
+
+
+  // gets the dashbord data and populates the baseline list.
+  // In this case, the dashboardData's key is the version id. 
+  var getVersionDashboard = function() {
+    $scope.projects = {};
+    $http.get("/plugin/json/version/" + $scope.version.id + "/dashboard/")
+    .success(function(d){
+      if (d != null){
+        $scope.projects[$scope.version.id] = {};
+        $scope.projects[$scope.version.id].dashboardData = d;
+              // take the first task's data and get the set of baselines from it 
+              // NOTE: this is assuming that tasks all have the same baselines.
+              setInitialBaselines(d, $scope.version.id);
+            }
+      })
+  };
+
+  // gets the dashboard for the app level by performing a get for 
+  // each project id and populating the dashboard data
+  var getAppDashboard = function(){
+      // get the latest version data for the whole dashboard
+      _.each($scope.branches, function(projects, branchName){
+        _.each(projects, function (projectName) {
+          var skip = 0;
+          if ($scope.getProjectData(projectName).skip){
+            skip = $scope.getProjectData(projectName).skip;
+          } 
+          var currentBaseline = $scope.getProjectData(projectName).currentBaseline;
+          resetProjectData(projectName);
+          $scope.projects[projectName].skip = skip;
+          $scope.projects[projectName].currentBaseline = currentBaseline;
+          $http.get("/plugin/json/version/latest/" + projectName + "/dashboard?skip="+ skip)
+          .success(function(d){
+            $scope.projects[projectName].dashboardData = d.json_tasks;
+            $scope.projects[projectName].commitInfo= d.commit_info;
+            $scope.projects[projectName].endOfVersion = d.last_revision;
+            $scope.projects[projectName].counts = {};
+            setInitialBaselines(d.json_tasks, projectName);
           })
         })
+      })
+    }
+
+    var getInitialData = function(){
+      if ($scope.dashboardProjects){
+        getAppDashboard();
+      } else {
+        getVersionDashboard();
       }
-
-      var getInitialData = function(){
-        if ($scope.dashboardProjects){
-          getAppDashboard();
-        } else {
-          getVersionDashboard();
-        }
-      }
-      getInitialData();
+    }
+    getInitialData();
 
 
-})
+    })
 mciModule.directive('dashboardTable', function(){
   return {
-      restrict: 'E',
-      templateUrl:'/plugin/dashboard/static/partials/dashboard_table.html',
+    restrict: 'E',
+    templateUrl:'/plugin/dashboard/static/partials/dashboard_table.html',
   }
 })
 
 mciModule.directive('baselineDropdown', function(){
   return {
-      restrict: 'E',
-      templateUrl:'/plugin/dashboard/static/partials/baselines.html',
+    restrict: 'E',
+    templateUrl:'/plugin/dashboard/static/partials/baselines.html',
+  }
+})
+
+mciModule.directive('pageButtons', function(){
+  return {
+    restrict: 'E',
+    templateUrl:'/plugin/dashboard/static/partials/page_buttons.html',
   }
 })

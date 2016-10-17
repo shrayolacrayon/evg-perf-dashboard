@@ -1,11 +1,11 @@
 <span ng-controller="DashboardController">
-  <div ng-show="dashboardData && conf.enabled">  
+  <div ng-show="getProjectData(project).dashboardData && conf.enabled">  
     <h3 class="section-heading"><i class="fa fa-book"></i> Performance Dashboard </h3>  
     <div class="panel panel-body">   
       <h3> [[getBaselineDisplay(currentBaseline, project)]] </h3>
       <div class="row"> 
         <div class="col-lg-7">
-          <div class="progress dash-progress" ng-show="showProgress()">
+              <div class="progress dash-progress" ng-show="showProgress(project)">
             <div ng-repeat="state in status_list"  ng-class="getColor(state)" class="progress-bar" ng-style="{width: getWidth(state, project)}" data-element-tooltip="state + ': ' + counts[version.id][state]" ></div>
           </div>
         </div>
