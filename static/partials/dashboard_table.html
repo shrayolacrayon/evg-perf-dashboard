@@ -8,7 +8,7 @@
       <th class="tickets"> Tickets </th>
       <th> Notes </th>
     </tr>
-    <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true">
+    <tr ng-repeat="test in getBaselineData(task, project) | orderBy: getOrder: true | filter: filterPassed">
       <td ng-class="getColor(test.state)" class="test" title=[[test.state]]></td>
       <td> [[test.perf_ratio.toFixed(2)]]</td>
       <td> [[test.test_file]]</td>
