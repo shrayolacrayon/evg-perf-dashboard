@@ -105,7 +105,8 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 
     $scope.getStrikethroughClass = function(ticket){
       var completedStatuses = ["closed", "resolved"];
-      var currentStatus = ticket.status.toLowerCase();
+
+      var currentStatus = ticket.status ? ticket.status.toLowerCase() : "";
       return _.contains(completedStatuses, currentStatus) ? "strikethrough" : "";
     }
 
