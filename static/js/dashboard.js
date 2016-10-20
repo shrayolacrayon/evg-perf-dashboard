@@ -1,11 +1,20 @@
 mciModule.controller('DashboardController', function PerfController($scope, $window, $http, $location){
 
   $scope.status_list = ["pass", "forced accept", "undesired", "unacceptable", "no info"];
-
+  // check the location hash and use that if there is one. 
+  if ($location.search().branch){
+    $window.defaultBranch = $location.search().branch;
+  }
   if ($window.branches){
     $scope.branches = $window.branches;
     $scope.branchNames = _.keys($scope.branches);
     $scope.currentBranch = $scope.branchNames[0];
+    // if there is a branch in the location or a master branch make those the default. 
+    if (_.contains($scope.branchNames, $window.defaultBranch)){
+      $scope.currentBranch = $window.defaultBranch;
+    } else if (_.contains($scope.branchNames, "master")){
+      $scope.currentBranch = "master";
+    }
     $scope.dashboardProjects = $scope.branches[$scope.currentBranch];
   }
 
@@ -94,6 +103,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
     $scope.setBranch = function(branchName) {
       $scope.dashboardProjects = $scope.branches[branchName];
       $scope.currentBranch = branchName;
+      $location.search("branch", branchName);
     }
 
     $scope.getTicketName = function(ticket) {

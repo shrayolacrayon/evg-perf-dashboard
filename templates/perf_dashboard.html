@@ -2,7 +2,8 @@
 <script type="text/javascript" src="/plugin/dashboard/static/js/dashboard.js?hash={{ StaticsMD5 }}"></script>
 <link href="/plugin/dashboard/static/css/dashboard.css" rel="stylesheet"/>
 <script>
-  window.branches = {{.Data}}
+  window.branches = {{.Data.Branches}};
+  window.defaultBranch = {{.Data.DefaultBranch}}
 </script>
 {{end}}
 

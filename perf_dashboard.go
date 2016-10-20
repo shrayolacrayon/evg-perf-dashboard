@@ -33,6 +33,12 @@ type DashboardData struct {
 	VersionId string `json:"version_id"`
 }
 
+// DashboardAppData is the data that is returned from calling the app level data function
+type DashboardAppData struct {
+	Branches      map[string][]string `json:"branches"`
+	DefaultBranch string
+}
+
 // Name implements Plugin Interface.
 func (pdp *PerfDashboardPlugin) Name() string {
 	return "dashboard"
@@ -42,7 +48,13 @@ func (pdp *PerfDashboardPlugin) GetUIHandler() http.Handler { return nil }
 
 func (pdp *PerfDashboardPlugin) GetAppPluginInfo() *plugin.UIPage {
 	data := func(context plugin.UIContext) (interface{}, error) {
-		return pdp.Branches, nil
+		defaultBranch := context.Request.FormValue("branch")
+		dashboardData := DashboardAppData{
+			DefaultBranch: defaultBranch,
+			Branches:      pdp.Branches,
+		}
+
+		return dashboardData, nil
 	}
 	return &plugin.UIPage{"perf_dashboard.html", data}
 }
@@ -60,7 +72,6 @@ func (pdp *PerfDashboardPlugin) GetPanelConfig() (*plugin.PanelConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Can't load version panel file html %v", err)
 	}
-
 	return &plugin.PanelConfig{
 		Panels: []plugin.UIPanel{
 			{
