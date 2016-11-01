@@ -38,8 +38,10 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
 
   // if there is a version, this is a version level dashboard. 
   if ($window.version) {
+    console.log("here")
     $scope.version = $window.version.Version;
     $scope.project = $scope.version.id;
+    $scope.hidePassingTasks = false;
   }
 
 
@@ -89,7 +91,6 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       }).length;
     }
     $scope.allPassing = function(project, task){
-
       return $scope.hidePassingTasks && $scope.getNumberPassing(project, task) == $scope.getBaselineData(task,project).length;
     }
 
@@ -166,7 +167,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
         return;
       }
       $scope.projects[project].skip += increment;
-      getAppDashboard();
+      getDashboardForProject(project);
       return;
     }
 
@@ -238,24 +239,29 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
       // get the latest version data for the whole dashboard
       _.each($scope.branches, function(projects, branchName){
         _.each(projects, function (projectName) {
-          var skip = 0;
-          if ($scope.getProjectData(projectName).skip){
-            skip = $scope.getProjectData(projectName).skip;
-          } 
-          var currentBaseline = $scope.getProjectData(projectName).currentBaseline;
-          resetProjectData(projectName);
-          $scope.projects[projectName].skip = skip;
-          $scope.projects[projectName].currentBaseline = currentBaseline;
-          $http.get("/plugin/json/version/latest/" + projectName + "/dashboard?skip="+ skip)
-          .success(function(d){
-            $scope.projects[projectName].dashboardData = d.json_tasks;
-            $scope.projects[projectName].commitInfo= d.commit_info;
-            $scope.projects[projectName].endOfVersion = d.last_revision;
-            $scope.projects[projectName].counts = {};
-            setInitialBaselines(d.json_tasks, projectName);
-          })
+          getDashboardForProject(projectName);
         })
       })
+    }
+
+    var getDashboardForProject = function(projectName){
+      var skip = 0;
+      if ($scope.getProjectData(projectName).skip){
+        skip = $scope.getProjectData(projectName).skip;
+      }
+      var currentBaseline = $scope.getProjectData(projectName).currentBaseline;
+      resetProjectData(projectName);
+      $scope.projects[projectName].skip = skip;
+      $scope.projects[projectName].currentBaseline = currentBaseline;
+      $http.get("/plugin/json/version/latest/" + projectName + "/dashboard?skip="+ skip)
+      .success(function(d){
+        $scope.projects[projectName].dashboardData = d.json_tasks;
+        $scope.projects[projectName].commitInfo= d.commit_info;
+        $scope.projects[projectName].endOfVersion = d.last_revision;
+        $scope.projects[projectName].counts = {};
+        setInitialBaselines(d.json_tasks, projectName);
+      })
+
     }
 
     var getInitialData = function(){

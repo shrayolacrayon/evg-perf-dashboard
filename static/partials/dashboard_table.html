@@ -1,8 +1,10 @@
 <div class="dashboardTable" ng-repeat="task in getData(project)">
   <div class="row">
-  <h4> <a ng-href="/task/[[task.task_id]]"> [[task.task_name]] on [[task.variant]]</a></h4>
+  <h4> <a ng-href="/task/[[task.task_id]]"> [[task.task_name]] on [[task.variant]]</a> 
+    <span class="numPassing" ng-show="allPassing(project,task)">All Passing</span>
+  </h4>
   </div>
-  <div class="row">
+  <div class="row" ng-hide="allPassing(project, task)">
     <table class="table table-bordered">
       <tr>
         <th style="background-color: gray; width:10px"></th>
@@ -25,7 +27,7 @@
         <td> [[test.notes]] </td>
       </tr>
     </table>
-    <div ng-show="hidePassingTasks && getNumberPassing(project,task) > 0" ng-hide="allPassing(project,task)" class=" numPassing"> 
+    <div ng-show="hidePassingTasks && getNumberPassing(project,task) > 0" ng-hide="allPassing(project,task)" class="numPassing"> 
       +[[getNumberPassing(project, task)]] pass
     </div>
   </div>
