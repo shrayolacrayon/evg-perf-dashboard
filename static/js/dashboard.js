@@ -8,7 +8,7 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
     $scope.branches = $window.appData.branches;
     $scope.defaultBranch = $window.appData.default_branch;
     $scope.hidePassingTasks = true;
-    $scope.showUnfinishedTasks = false;
+    $scope.showUnfinishedTasks = true;
   }
 
   if ($window.plugins){
@@ -232,11 +232,25 @@ mciModule.controller('DashboardController', function PerfController($scope, $win
         $http.get("/plugin/dashboard/tasks/project/" + project + "/version/" + versionId)
         .success(function(d){
           if (d != null){
-            console.log(d);
-            $scope.projects[project].unfinishedTasks = d;
-          }
-        })
-      }
+            var dashData = $scope.projects[project].dashboardData;
+            var allTasks = d;
+            var existingTasks = _.reduce(dashData, function(existingTasks, data){
+              if (!existingTasks[data.task_name]) {
+                existingTasks[data.task_name] = [];
+              }
+              existingTasks[data.task_name].push(data.variant);
+              return existingTasks;
+            }, {})
+             // compute the intersection of all tasks and ones that have finished
+            $scope.projects[project].unfinishedTasks = _.mapObject(allTasks, function(variantList, taskName){
+              if (existingTasks[taskName]){
+                return _.difference(variantList, existingTasks[taskName]);
+              } 
+              return variantList;
+            })          
+        }
+      })
+    }
     }
 
 

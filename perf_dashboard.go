@@ -145,6 +145,7 @@ func getTasksForVersion(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
+
 	if len(project.Tasks) == 0 {
 		if err != nil {
 			http.Error(w, fmt.Sprintf("no project tasks for project %v with revision %v", projectRef.Identifier, v.Revision),
@@ -153,27 +154,53 @@ func getTasksForVersion(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-
-	tasks, err := GetTasksWithJSONCommand(PerfDashboardPluginName, "json.send", project)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	plugin.WriteJSON(w, http.StatusOK, tasks)
+	taskMap := getVariantsWithCommand("json.send", project)
+	plugin.WriteJSON(w, http.StatusOK, taskMap)
 }
 
-// GetTasksWithJSONCommand takes in a version id and project id and returns the
-func GetTasksWithJSONCommand(pluginName, commandName string, project *model.Project) ([]DashboardTask, error) {
-	dashboardTasks := []DashboardTask{}
+// hasCommand traverses the command structure to see if the command exists
+func hasCommand(commandName string, command model.PluginCommandConf, project *model.Project) bool {
+	exists := false
+	if command.Function != "" {
+		for _, c := range project.Functions[command.Function].List() {
+			exists = exists || hasCommand(commandName, c, project)
+		}
+	} else {
+		exists = (command.Command == commandName && command.Params["name"] == PerfDashboardPluginName)
+	}
+	return exists
+}
+
+// createTaskCacheForCommand returns a map of tasks that have the command
+func createTaskCacheForCommand(commandName string, project *model.Project) map[string]bool {
+	tasks := map[string]bool{}
 	for _, t := range project.Tasks {
 		for _, command := range t.Commands {
-			if command.Command == commandName && command.Params["name"] == pluginName {
-				for _, variant := range command.Variants {
-					dashboardTasks = append(dashboardTasks, DashboardTask{t.Name, variant})
-				}
+			if hasCommand(commandName, command, project) {
+				tasks[t.Name] = true
 				break
 			}
 		}
 	}
-	return dashboardTasks, nil
+	return tasks
+}
+
+// getVariantsWithCommand creates a cache of all tasks that have a command name and then iterates over all build variants
+// to check if the task is in the cache, adds the bv name to a map
+func getVariantsWithCommand(commandName string, project *model.Project) map[string][]string {
+	taskCache := createTaskCacheForCommand(commandName, project)
+	buildVariants := map[string][]string{}
+	for _, bv := range project.BuildVariants {
+		for _, t := range bv.Tasks {
+			if _, ok := taskCache[t.Name]; ok {
+				variants, ok := buildVariants[t.Name]
+				if !ok {
+					buildVariants[t.Name] = []string{bv.Name}
+				} else {
+					buildVariants[t.Name] = append(variants, bv.Name)
+				}
+			}
+		}
+	}
+	return buildVariants
 }
